@@ -6,6 +6,7 @@ import dbInstance from "../services/database"
 
 async function resizeUserImageForThumbnail() {
     try {
+        console.log("running script")
         const usersWithNoThumbnails = await dbInstance.get({
             where: {
                 thumbnailImage: {
@@ -14,6 +15,7 @@ async function resizeUserImageForThumbnail() {
             },
             options: {},
         }) || []
+        console.log(usersWithNoThumbnails)
         for (const user of usersWithNoThumbnails) {
             const inputPath = path.resolve(__dirname, "..", "assets", (user.uploadedImage || ""))
             const outputDir = path.resolve(__dirname, "..", "assets", "users", "thumbnail")
