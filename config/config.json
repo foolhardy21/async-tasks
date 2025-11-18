@@ -1,0 +1,14 @@
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "./sync_async_db.sqlite"
+  },
+  "test": {
+    "dialect": "sqlite",
+    "storage": "./sync_async_db.sqlite"
+  },
+  "production": {
+    "dialect": "sqlite",
+    "storage": "./sync_async_db.sqlite"
+  }
+}
