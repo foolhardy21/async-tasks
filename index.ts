@@ -1,5 +1,6 @@
 import dotenv from "dotenv"
 import express from "express"
+import cron from "node-cron"
 import resizeUserImageForThumbnail from "./src/scripts/resizeImage"
 
 dotenv.config()
@@ -12,8 +13,8 @@ app.listen(process.env.PORT, () => {
     console.log(`Server is running at ${process.env.PORT}`)
 })
 
-setTimeout(() => {
+cron.schedule("* * * * *", () => {
     resizeUserImageForThumbnail()
-}, 1 * 1000)
+})
 
 export default app

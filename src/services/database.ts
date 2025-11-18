@@ -30,7 +30,7 @@ class Database {
             {
                 tableName: "users",
                 underscored: true,
-                timestamps: false,
+                timestamps: true,
             },
         )
     }
