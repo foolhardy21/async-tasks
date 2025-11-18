@@ -8,7 +8,7 @@ class BackgroundTasksCron {
     start() {
         cron.schedule("* * * * *", () => {
             const task = backgroundTasks.dequeue()
-            console.log("cron running", task)
+            console.log("cron running for", task)
             switch (task) {
                 case "generate-thumbnail":
                     resizeUserImageForThumbnail()

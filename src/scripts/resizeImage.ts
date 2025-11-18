@@ -6,7 +6,7 @@ import dbInstance from "../services/database"
 
 async function resizeUserImageForThumbnail() {
     try {
-        console.log("running script")
+        console.log("starting image resize script")
         const usersWithNoThumbnails = await dbInstance.get({
             where: {
                 thumbnailImage: {
