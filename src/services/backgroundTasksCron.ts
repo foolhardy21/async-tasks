@@ -1,72 +1,79 @@
 import { Op } from "sequelize";
 import cron from "node-cron";
 import { Worker } from "worker_threads";
-import backgroundTasks from "../utils/backgroundTasksUtils";
+import backgroundTasks, { ALLOWED_BACKGROUND_TASKS } from "../utils/backgroundTasksUtils";
 import dbInstance from "./database";
 
 class BackgroundTasksCron {
-    #workers: { id: number, occupied: boolean }[]
-    #usersInProgress: number[]
-    #eventsMap: Record<string, Function>
+    #workers: { id: number, task: string, occupied: boolean }[]
 
     constructor() {
-        this.#workers = [{ id: 1, occupied: false }, { id: 2, occupied: false }]
-        this.#usersInProgress = []
-        this.#eventsMap = {}
+        this.#workers = Array.from(ALLOWED_BACKGROUND_TASKS).map((task, idx) => ({ id: idx + 1, task, occupied: false }))
     }
 
     start() {
         cron.schedule("* * * * *", async () => {
-            for (const workerObj of this.#workers) {
-                if (!workerObj.occupied) {
-                    const task = backgroundTasks.dequeue()
-                    console.log("current task", task)
-                    switch (task) {
-                        case "generate-thumbnail":
-                            let usersWithNoThumbnails = await dbInstance.get({
-                                where: {
-                                    thumbnailImage: { [Op.is]: null },
-                                },
-                                options: {},
-                            }) || []
-                            usersWithNoThumbnails = usersWithNoThumbnails
-                                .filter(user => !this.#usersInProgress.includes(user.id))
-                            if (!usersWithNoThumbnails.length) return
-                            this.subscribeEvent("logs", this.handleLog)
-                            this.subscribeEvent("alert-admin", this.handleAdminAlert)
-                            const worker = new Worker("./src/scripts/resizeImage.ts", {
-                                workerData: { workerId: workerObj.id, usersWithNoThumbnails }
-                            })
-                            this.#usersInProgress.push(...usersWithNoThumbnails.map(user => user.id))
-                            worker.on("message", this.updateWorkerStatus.bind(this, workerObj.id, false))
-                            worker.on("error", this.updateWorkerStatus.bind(this, workerObj.id, false))
-                            break
-                        default: return
-                    }
-                    if (task) {
-                        this.updateWorkerStatus(workerObj.id, true)
-                    }
-                }
-            }
+            let thumbnailTask, thumbnailTaskWorker, logTask, logTaskWorker, adminTask, adminTaskWorker
+            thumbnailTask = backgroundTasks.dequeueFromGenThumbnail()
+            if (!thumbnailTask) return
+
+            thumbnailTaskWorker = this.#workers.find(worker => worker.task === thumbnailTask)
+            if (thumbnailTaskWorker?.occupied) return
+
+            let usersWithNoThumbnails = await dbInstance.get({
+                where: {
+                    thumbnailImage: { [Op.is]: null },
+                },
+                options: {},
+            }) || []
+            if (!usersWithNoThumbnails.length) return
+
+            this.updateWorkerStatus(thumbnailTask, true)
+            const worker1 = new Worker("./src/scripts/resizeImage.ts", {
+                workerData: { workerId: thumbnailTaskWorker?.id, usersWithNoThumbnails }
+            })
+            worker1.on("message", this.updateWorkerStatus.bind(this, thumbnailTask, false))
+            worker1.on("error", this.updateWorkerStatus.bind(this, thumbnailTask, false))
+
+            logTask = backgroundTasks.dequeueFromLog()
+            if (!logTask) return
+
+            logTaskWorker = this.#workers.find(worker => worker.task === logTask)
+            if (logTaskWorker?.occupied) return
+
+            this.updateWorkerStatus(logTask, true)
+            const worker2 = new Worker("./src/scripts/uploadLogs.ts")
+            worker2.on("message", this.updateWorkerStatus.bind(this, logTask, false))
+            worker2.on("error", this.updateWorkerStatus.bind(this, logTask, false))
+
+            adminTask = backgroundTasks.dequeueFromNotifyAdmin()
+            if (!adminTask) return
+
+            adminTaskWorker = this.#workers.find(worker => worker.task === adminTask)
+            if (adminTaskWorker?.occupied) return
+
+            this.updateWorkerStatus(adminTask, true)
+            const worker3 = new Worker("./src/scripts/notifyAdmin.ts")
+            worker3.on("message", this.updateWorkerStatus.bind(this, adminTask, false))
+            worker3.on("error", this.updateWorkerStatus.bind(this, adminTask, false))
+
         })
     }
 
-    async updateWorkerStatus(workerId: number, newOccupiedStatus: boolean, ...args: any[]) {
+    async updateWorkerStatus(task: string, newOccupiedStatus: boolean, ...args: any[]) {
+        if (!task) return
+
         this.#workers = this.#workers.map(workerObj => {
-            if (workerObj.id === workerId) {
+            if (workerObj.task === task) {
                 return { ...workerObj, occupied: newOccupiedStatus }
             }
             return workerObj
         })
         if (newOccupiedStatus) return
 
-        const { task } = args[0].data
         switch (task) {
             case "generate-thumbnail":
                 const { thumbnails } = args[0].data
-                const usersCompleted = thumbnails.map((thumbnail: any) => thumbnail.userId)
-                this.#usersInProgress = this.#usersInProgress
-                    .filter(userInProgress => !usersCompleted.includes(userInProgress))
                 try {
                     for (const user of thumbnails) {
                         await dbInstance.update(
@@ -74,43 +81,25 @@ class BackgroundTasksCron {
                                 thumbnailImage: user.path
                             },
                             {
-                                where: {
-                                    id: { [Op.is]: user.userId }
-                                }
+                                where: { id: { [Op.is]: user.userId } }
                             }
                         )
                     }
                 } catch (err) {
                     console.log(err)
-                } finally {
-                    this.fireEvent("logs", { data: args[0].data })
-                    this.fireEvent("alert-admin", { data: args[0].data })
                 }
                 break
+            case "log-upload":
+                const logData = args[0].data
+                console.log("Logs upload:", logData)
+                break
+            case "notify-admin":
+                const adminData = args[0].data
+                console.log("Admin notify:", adminData)
+                break
+
             default: return
         }
-    }
-
-    subscribeEvent(event: string, handler: Function) {
-        this.#eventsMap = {
-            ...this.#eventsMap,
-            [event]: handler
-        }
-        console.log("subscribed event:", event)
-    }
-
-    fireEvent(event: string, data: Record<string, unknown>) {
-        this.#eventsMap[event].call(this, event, data)
-        delete this.#eventsMap[event]
-        console.log("fired event:", event)
-    }
-
-    handleLog(event: string, data: any) {
-        console.log("logging for", event, data)
-    }
-
-    handleAdminAlert(event: string, data: any) {
-        console.log("sending alert for", event, data)
     }
 
 }

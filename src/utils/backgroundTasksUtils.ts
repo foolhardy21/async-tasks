@@ -1,24 +1,52 @@
 class BackgroundTasksQueue {
-    #taskQueue: string[]
+    #generateThumbnailQueue: string[]
+    #logQueue: string[]
+    #notifyAdminQueue: string[]
 
     constructor() {
-        this.#taskQueue = []
+        this.#generateThumbnailQueue = []
+        this.#logQueue = []
+        this.#notifyAdminQueue = []
     }
 
-    enqueue(item: string) {
-        this.#taskQueue.push(item)
+    enqueueInGenThumbnail(item: string) {
+        this.#generateThumbnailQueue.push(item)
+    }
+    enqueueInLog(item: string) {
+        this.#logQueue.push(item)
+    }
+    enqueueInNotifyAdmin(item: string) {
+        this.#notifyAdminQueue.push(item)
     }
 
-    dequeue() {
-        return this.#taskQueue.shift()
+    dequeueFromGenThumbnail() {
+        return this.#generateThumbnailQueue.shift()
+    }
+    dequeueFromLog() {
+        return this.#logQueue.shift()
+    }
+    dequeueFromNotifyAdmin() {
+        return this.#notifyAdminQueue.shift()
     }
 
-    getFront() {
-        return this.#taskQueue[0]
+    getGenThumbnailFront() {
+        return this.#generateThumbnailQueue[0]
+    }
+    getLogFront() {
+        return this.#logQueue[0]
+    }
+    getNotifyAdminFront() {
+        return this.#notifyAdminQueue[0]
     }
 
-    isEmpty() {
-        return !this.#taskQueue.length
+    isGenThumbnailEmpty() {
+        return !this.#generateThumbnailQueue.length
+    }
+    isLogEmpty() {
+        return !this.#logQueue.length
+    }
+    isNotifyAdminEmpty() {
+        return !this.#notifyAdminQueue.length
     }
 }
 
@@ -26,4 +54,4 @@ const backgroundTasks = new BackgroundTasksQueue()
 
 export default backgroundTasks
 
-export const ALLOWED_BACKGROUND_TASKS = new Set(["generate-thumbnail"]) 
+export const ALLOWED_BACKGROUND_TASKS = new Set(["generate-thumbnail", "log-upload", "notify-admin"]) 
