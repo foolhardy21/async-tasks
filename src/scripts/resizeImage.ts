@@ -1,54 +1,47 @@
-import { Op } from "sequelize"
-import sharp from "sharp"
-import path from "path"
-import { promises as fs } from "fs"
-import dbInstance from "../services/database"
+const sharp = require("sharp")
+const path = require("path")
+const { promises } = require("fs")
+const { workerData, parentPort } = require("worker_threads")
 
 async function resizeUserImageForThumbnail() {
+    let thumbnailsArr = []
     try {
-        console.log("starting image resize script")
-        const usersWithNoThumbnails = await dbInstance.get({
-            where: {
-                thumbnailImage: {
-                    [Op.is]: null,
-                },
-            },
-            options: {},
-        }) || []
-        console.log(usersWithNoThumbnails)
+        const { usersWithNoThumbnails, workerId } = workerData
+        console.log("starting image resize script", workerId, usersWithNoThumbnails)
         for (const user of usersWithNoThumbnails) {
             const inputPath = path.resolve(__dirname, "..", "assets", (user.uploadedImage || ""))
             const outputDir = path.resolve(__dirname, "..", "assets", "users", "thumbnail")
             const outputPath = path.join(outputDir, (user.uploadedImage || "").split("/")[2])
 
             try {
-                await fs.access(inputPath)
+                await promises.access(inputPath)
             } catch (err) {
                 console.log(err)
                 continue
             }
-            await fs.mkdir(outputDir, { recursive: true })
+            await promises.mkdir(outputDir, { recursive: true })
             await sharp(inputPath)
                 .resize(300, 300)
                 .toFile(outputPath)
 
-            await dbInstance.update(
-                {
-                    thumbnailImage: outputPath.split("/assets/")[1]
-                },
-                {
-                    where: {
-                        id: {
-                            [Op.is]: user.id
-                        }
-                    }
-                }
-            )
-
+            thumbnailsArr.push({ userId: user.id, path: outputPath.split("/assets/")[1] })
+        }
+        return {
+            success: true,
+            message: "Thumbnails generated successfully.",
+            data: { task: "generate-thumbnail", thumbnails: thumbnailsArr }
         }
     } catch (err) {
         console.log(err)
+        return {
+            success: false,
+            message: err,
+            data: { task: "generate-thumbnail", thumbnails: thumbnailsArr }
+        }
     }
 }
 
-export default resizeUserImageForThumbnail
+resizeUserImageForThumbnail()
+    .then(result => {
+        parentPort?.postMessage(result)
+    })
