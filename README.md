@@ -2,7 +2,7 @@
 
 - **Description**: A small Node + TypeScript service that accepts user image uploads, stores the original, and generates 300x300 JPEG thumbnails in a background worker. Uses a lightweight SQLite-backed model layer and worker threads for asynchronous image processing.
 
-- [Changelog](./docs/change_log.md)
+- [Changelog](./docs/changelog.md)
 
 **Tech Stack**
 - **Language**: TypeScript
