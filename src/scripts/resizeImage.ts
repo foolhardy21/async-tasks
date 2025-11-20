@@ -6,8 +6,8 @@ const { workerData, parentPort } = require("worker_threads")
 async function resizeUserImageForThumbnail() {
     let thumbnailsArr = []
     try {
-        const { usersWithNoThumbnails, workerId } = workerData
-        console.log("starting image resize script", workerId, usersWithNoThumbnails)
+        const { usersWithNoThumbnails } = workerData
+        console.log("starting image resize script:", usersWithNoThumbnails)
         for (const user of usersWithNoThumbnails) {
             const inputPath = path.resolve(__dirname, "..", "assets", (user.uploadedImage || ""))
             const outputDir = path.resolve(__dirname, "..", "assets", "users", "thumbnail")
