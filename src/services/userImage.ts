@@ -1,31 +1,49 @@
 import { Op } from "sequelize"
 import { Worker } from "worker_threads";
 import dbInstance from "./database"
+import { ALLOWED_BACKGROUND_TASKS } from "../utils/common";
+import { EVENTS } from "../utils/eventsUtils";
 
 class UserImage {
+    #usersThumbnailData: Array<{ userId: number, path: string }>
 
-    constructor() { }
+    constructor() {
+        this.#usersThumbnailData = []
+    }
 
     async handleImageUpload({ path, userId }: { path: string, userId: string }) {
         try {
-            console.log("Updating user's record:", userId, path)
-            await dbInstance.update(
-                { uploadedImage: path },
-                { where: { id: { [Op.is]: userId } } }
-            )
-            let usersWithNoThumbnails = await dbInstance.get({
-                where: {
-                    thumbnailImage: { [Op.is]: null },
-                },
-                options: {},
-            }) || []
-            if (!usersWithNoThumbnails.length) return
+            for (let i = 0; i < ALLOWED_BACKGROUND_TASKS[EVENTS.IMAGE_UPLOAD].length; i++) {
+                const task = ALLOWED_BACKGROUND_TASKS[EVENTS.IMAGE_UPLOAD][i]
+                switch (task) {
+                    case "generate-thumbnail":
+                        console.log("Updating user's record:", userId, path)
+                        await dbInstance.update(
+                            { uploadedImage: path },
+                            { where: { id: { [Op.is]: userId } } }
+                        )
+                        const userWithUploadedImg = await dbInstance.get({
+                            where: {
+                                id: { [Op.is]: userId },
+                            },
+                            options: {},
+                        }) || []
 
-            const worker = new Worker("./src/scripts/resizeImage.ts", {
-                workerData: { usersWithNoThumbnails }
-            })
-            worker.on("message", this.handlePostImgUpload.bind(this))
-            worker.on("error", this.handlePostImgUpload.bind(this))
+                        const worker = new Worker("./src/scripts/resizeImage.ts", {
+                            workerData: { usersWithNoThumbnails: userWithUploadedImg }
+                        })
+                        worker.on("message", this.handlePostImgUpload.bind(this))
+                        worker.on("error", this.handlePostImgUpload.bind(this))
+                        break
+                    case "log-upload":
+                        this.handleLogUpload()
+                        break
+                    case "notify-admin":
+                        this.handleNotifyAdmin()
+                        break
+                    default: return
+                }
+            }
         } catch (err) {
             console.log("Error while uploading user image:", err)
         }
@@ -33,7 +51,7 @@ class UserImage {
 
     async handlePostImgUpload(data: any) {
         try {
-            console.log(data.data.thumbnails)
+            this.#usersThumbnailData = data.data
             for (const thumbnail of data.data.thumbnails) {
                 await dbInstance.update(
                     {
@@ -43,19 +61,17 @@ class UserImage {
                         where: { id: { [Op.is]: thumbnail.userId } }
                     }
                 )
-                await this.handleLogUpload(thumbnail)
-                await this.handleNotifyAdmin(thumbnail)
             }
         } catch (err) {
             console.log("Error while updating user's thumbnail:", err)
         }
     }
 
-    async handleLogUpload(data: any) {
+    async handleLogUpload() {
         try {
             return new Promise((resolve) => {
                 setTimeout(() => {
-                    console.log("Logs uploaded for:", data)
+                    console.log("Logs uploaded for:", this.#usersThumbnailData)
                     resolve("")
                 }, 1 * 1000)
             })
@@ -64,11 +80,11 @@ class UserImage {
         }
     }
 
-    async handleNotifyAdmin(data: any) {
+    async handleNotifyAdmin() {
         try {
             return new Promise((resolve) => {
                 setTimeout(() => {
-                    console.log("Admin notified about:", data)
+                    console.log("Admin notified about:", this.#usersThumbnailData)
                     resolve("")
                 }, 2 * 1000)
             })

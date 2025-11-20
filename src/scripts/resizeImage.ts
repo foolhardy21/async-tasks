@@ -16,7 +16,7 @@ async function resizeUserImageForThumbnail() {
             try {
                 await promises.access(inputPath)
             } catch (err) {
-                console.log(err)
+                console.log("Error accessing the file:", err)
                 continue
             }
             await promises.mkdir(outputDir, { recursive: true })
@@ -32,7 +32,7 @@ async function resizeUserImageForThumbnail() {
             data: { task: "generate-thumbnail", thumbnails: thumbnailsArr }
         }
     } catch (err) {
-        console.log(err)
+        console.log("Error resizing the image:", err)
         return {
             success: false,
             message: err,
