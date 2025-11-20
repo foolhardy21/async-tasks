@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import { Op } from "sequelize"
-import { promises } from "fs"
 import dbInstance from "../services/database"
+import { deleteFile } from "../utils/common"
 
 export async function userImgValidator(req: Request, res: Response, next: NextFunction) {
     const { file, body: { userId } } = (req as any)
@@ -20,12 +20,4 @@ export async function userImgValidator(req: Request, res: Response, next: NextFu
         return res.status(400).json({ success: false, message: err?.message })
     }
     next()
-}
-
-async function deleteFile(filePath: string) {
-    try {
-        await promises.unlink(filePath)
-    } catch (err) {
-        console.log("Error while deleting the file:", filePath)
-    }
 }

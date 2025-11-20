@@ -1,5 +1,9 @@
-import { EVENTS } from "./eventsUtils";
+import { promises } from "fs"
 
-export const ALLOWED_BACKGROUND_TASKS = {
-    [EVENTS.IMAGE_UPLOAD]: ["generate-thumbnail", "log-upload", "notify-admin"]
+export async function deleteFile(filePath: string) {
+    try {
+        await promises.unlink(filePath)
+    } catch (err) {
+        console.log("Error while deleting the file:", filePath)
+    }
 }

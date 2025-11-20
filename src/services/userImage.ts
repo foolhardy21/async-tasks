@@ -1,8 +1,7 @@
 import { Op } from "sequelize"
 import { Worker } from "worker_threads";
 import dbInstance from "./database"
-import { ALLOWED_BACKGROUND_TASKS } from "../utils/common";
-import { EVENTS } from "../utils/eventsUtils";
+import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 
 class UserImage {
     #usersThumbnailData: Array<{ userId: number, path: string }>
@@ -13,8 +12,8 @@ class UserImage {
 
     async handleImageUpload({ path, userId }: { path: string, userId: string }) {
         try {
-            for (let i = 0; i < ALLOWED_BACKGROUND_TASKS[EVENTS.IMAGE_UPLOAD].length; i++) {
-                const task = ALLOWED_BACKGROUND_TASKS[EVENTS.IMAGE_UPLOAD][i]
+            for (let i = 0; i < EVENT_TASKS_MAP[EVENTS.IMAGE_UPLOAD].length; i++) {
+                const task = EVENT_TASKS_MAP[EVENTS.IMAGE_UPLOAD][i]
                 switch (task) {
                     case "generate-thumbnail":
                         console.log("Updating user's record:", userId, path)
