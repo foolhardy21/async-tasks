@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { Request, Response } from "express";
-import { EVENTS } from "../utils/eventsUtils";
+import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 import dbInstance from "../services/database";
 import eventsManager from "../services/eventsManager";
 
@@ -21,10 +21,23 @@ export async function thumbnailStatusController(req: Request, res: Response) {
             },
             options: {},
         })
-        const message = userDbRes.thumbnailImage ? "Thumbnail generated successfully." : "Thumbnail generation is pending."
-        const data = userDbRes.thumbnailImage ? { status: "done", url: userDbRes.thumbnailImage } : { status: "pending" }
 
-        return res.status(200).json({ success: false, message, data })
+        if (userDbRes.thumbnailImage) {
+            return res.status(200).json({
+                success: false,
+                message: "Thumbnail generated successfully.",
+                data: { status: "done", url: userDbRes.thumbnailImage }
+            })
+        } else {
+            eventsManager.subscribe(EVENT_TASKS_MAP[EVENTS.IMAGE_UPLOAD][0], (thumbnailImage: string) => {
+                return res.status(200).json({
+                    success: false,
+                    message: "Thumbnail generated successfully.",
+                    data: { status: "done", url: thumbnailImage }
+                })
+            })
+        }
+
     } catch (err) {
         console.log("Error while returning the thumbnail status:", err)
     }
