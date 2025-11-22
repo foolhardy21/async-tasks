@@ -21,3 +21,20 @@ export async function userImgValidator(req: Request, res: Response, next: NextFu
     }
     next()
 }
+
+export async function thumbnailStatusValidator(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { userId } = req.params
+        const userDbRes = await dbInstance.get({
+            where: {
+                id: { [Op.is]: Number(userId) }
+            },
+            options: {},
+        })
+        if (userDbRes.length != 1) throw new Error("User Id is invalid.")
+        next()
+    } catch (err: any) {
+        console.log("Error while validating thumbnail status:", err)
+        return res.status(500).json({ success: false, message: err?.message })
+    }
+}
