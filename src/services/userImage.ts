@@ -2,6 +2,7 @@ import { Op } from "sequelize"
 import { Worker } from "worker_threads";
 import dbInstance from "./database"
 import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
+import eventsManager from "./eventsManager";
 
 class UserImage {
     #usersThumbnailData: Array<{ userId: number, path: string }>
@@ -60,6 +61,7 @@ class UserImage {
                         where: { id: { [Op.is]: thumbnail.userId } }
                     }
                 )
+                eventsManager.fire(EVENT_TASKS_MAP[EVENTS.IMAGE_UPLOAD][0], thumbnail.path)
             }
         } catch (err) {
             console.log("Error while updating user's thumbnail:", err)

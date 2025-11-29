@@ -1,24 +1,26 @@
-// import supertest from "supertest"
-// import backgroundTasks from "../services/userImage"
-// import app from "../.."
+import supertest from "supertest"
+import path from "path"
+import dbInstance from "../services/database"
+import app from "../.."
 
 describe("Users Integration Testing", () => {
-    // const body = {
-    //     task: "generate-thumbnail"
-    // }
 
-    // it("should keep running the tasks queue", async () => {
-    //     const isQueueEmpty = backgroundTasks.isEmpty()
-    //     expect(isQueueEmpty).toBeTruthy()
+    it("Long polling: should return the thumbnail status", async () => {
+        const user = await dbInstance.create({ uploadedImage: "", thumbnailImage: "" })
+        const userId = user.id
+        const fixture = path.join(__dirname, "fixtures", "user6.jpg")
 
-    //     const response = await supertest(app)
-    //         .post("/api/background-task/enqueue")
-    //         .send(body)
+        setTimeout(async () => {
+            await supertest(app)
+                .post("/api/tasks/upload-image")
+                .field("userId", userId)
+                .attach("file", fixture)
+        }, 5 * 1000)
 
-    //     expect(response.status).toBe(202)
+        const statusRes = await supertest(app)
+            .get("/api/tasks/thumbnail-status" + "/" + userId)
+        expect(statusRes.status).toBe(200)
+        expect(statusRes.body.data.status).toBe("done")
 
-    //     const isQueueEmptyAfterEnqueue = backgroundTasks.isEmpty()
-    //     expect(isQueueEmptyAfterEnqueue).toBeFalsy()
-
-    // })
+    })
 })

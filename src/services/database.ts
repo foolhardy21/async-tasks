@@ -56,6 +56,18 @@ class Database {
         }
     }
 
+    async create({ uploadedImage, thumbnailImage }: { uploadedImage: string, thumbnailImage: string }) {
+        try {
+            const userModel = await this.#User.create({
+                ...(uploadedImage && { uploadedImage }),
+                ...(thumbnailImage && { thumbnailImage }),
+            })
+            return userModel.toJSON()
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
     async update(columns: Record<string, unknown>, options: { where: WhereOptions } & Partial<UpdateOptions>) {
         try {
             await this.#User.update(columns, options)
