@@ -6,6 +6,7 @@ import { EVENTS } from "./src/utils/eventsUtils"
 import userImgServiceInstance from "./src/services/userImage"
 import eventsManager from "./src/services/eventsManager"
 import { GAME_DETAILS, LEADERBOARD_STANDINGS } from "./src/utils/leaderboardUtils"
+import { logger, requestTimer } from "./src/middlewares/common"
 
 dotenv.config()
 
@@ -13,6 +14,8 @@ const app = express()
 const wss = new WebSocket.Server({ port: Number(process.env.WS_PORT) })
 
 app.use(express.json())
+app.use(logger)
+app.use(requestTimer)
 app.use("/api/tasks", tasksRouter)
 
 app.listen(process.env.PORT, () => {

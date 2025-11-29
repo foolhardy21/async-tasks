@@ -1,6 +1,6 @@
 import multer, { FileFilterCallback } from "multer"
 import { Request, Router } from "express"
-import { thumbnailStatusValidator, userImgValidator } from "../validators/userImgValidators"
+import { thumbnailStatusValidator, userImgValidator } from "../middlewares/userImgValidators"
 import { thumbnailStatusController, userImgController } from "../controllers/userImgController"
 
 const tasksrouter = Router()

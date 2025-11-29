@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 import dbInstance from "../services/database";
 import eventsManager from "../services/eventsManager";
+import { sendAnalytics } from "../services/analytics";
 
 export function userImgController(req: Request, res: Response) {
     const { file, body: { userId } } = req as any
@@ -30,6 +31,10 @@ export async function thumbnailStatusController(req: Request, res: Response) {
             })
         } else {
             eventsManager.subscribe(EVENT_TASKS_MAP[EVENTS.IMAGE_UPLOAD][0], (thumbnailImage: string) => {
+                sendAnalytics("Thumbnail Generation", {
+                    thumbnail_image: thumbnailImage,
+                    user_id: userId,
+                })
                 return res.status(200).json({
                     success: false,
                     message: "Thumbnail generated successfully.",
