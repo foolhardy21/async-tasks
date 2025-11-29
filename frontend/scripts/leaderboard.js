@@ -1,13 +1,13 @@
-const { WebSocket } = require("ws")
+const { io } = require("socket.io-client")
 
 function Leaderboard() {
     this.connectionReady = false
-    this.ws = null
+    this.socket = null
 
     this.makeConnection = function () {
-        const websocket = new WebSocket("ws://localhost:443/ws")
-        this.ws = websocket
-        this.ws.on("message", function (data) {
+        const socket = io("http://localhost:3000", {})
+        this.socket = socket
+        this.socket.on("message", function (data) {
             const { type, payload } = JSON.parse(data)
             switch (type) {
                 case "leaderboard.latest":
@@ -20,12 +20,7 @@ function Leaderboard() {
 
     this.getStandings = function () {
         const data = { type: "leaderboard.latest" }
-        const intervalId = setInterval(() => {
-            if (this.ws.readyState === 1) {
-                this.ws.send(JSON.stringify(data))
-                clearInterval(intervalId)
-            }
-        }, 10)
+        this.socket.send(JSON.stringify(data))
     }
 }
 
