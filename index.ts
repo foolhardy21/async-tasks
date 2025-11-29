@@ -1,13 +1,14 @@
 import dotenv from "dotenv"
 import express from "express"
 import http from "http"
+import { Server } from "socket.io"
 import tasksRouter from "./src/routes/tasksRoutes"
 import { EVENTS } from "./src/utils/eventsUtils"
 import userImgServiceInstance from "./src/services/userImage"
 import eventsManager from "./src/services/eventsManager"
 import { GAME_DETAILS, LEADERBOARD_STANDINGS } from "./src/utils/leaderboardUtils"
 import { logger, requestTimer } from "./src/middlewares/common"
-import { Server } from "socket.io"
+import leaderboardRouter from "./src/routes/leaderboard"
 
 dotenv.config()
 
@@ -19,6 +20,7 @@ app.use(express.json())
 app.use(logger)
 app.use(requestTimer)
 app.use("/api/tasks", tasksRouter)
+app.use("/server-events", leaderboardRouter)
 
 server.listen(process.env.PORT, () => {
     console.log(`Server is running at ${process.env.PORT}`)
