@@ -7,3 +7,8 @@ export async function deleteFile(filePath: string) {
         console.log("Error while deleting the file:", filePath)
     }
 }
+
+export const TASK_EXECUTION_TYPES = {
+    QUEUE: "queue-cron",
+    PUBSUB: "pub-sub",
+}

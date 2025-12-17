@@ -3,13 +3,19 @@ import { Request, Response } from "express";
 import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 import dbInstance from "../services/database";
 import eventsManager from "../services/eventsManager";
+import queueManager from "../services/queueManager";
 import { sendAnalytics } from "../services/analytics";
+import { TASK_EXECUTION_TYPES } from "../utils/common";
 
 export function userImgController(req: Request, res: Response) {
-    const { file, body: { userId } } = req as any
-    setTimeout(() => {
-        eventsManager.fire(EVENTS.IMAGE_UPLOAD, { path: "users/uploaded/" + file.filename, userId: userId })
-    }, 0 * 1000)
+    const { file, body: { userId, executionType = "" } } = req as any
+    if (executionType === TASK_EXECUTION_TYPES.QUEUE) {
+        queueManager.enqueue({ type: EVENTS.IMAGE_UPLOAD, data: { path: "users/uploaded/" + file.filename, userId: userId } })
+    } else {
+        setTimeout(() => {
+            eventsManager.fire(EVENTS.IMAGE_UPLOAD, { path: "users/uploaded/" + file.filename, userId: userId })
+        }, 0 * 1000)
+    }
     return res.status(202).json({ success: true, message: "Task accepted successfully." })
 }
 
