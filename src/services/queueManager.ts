@@ -8,9 +8,7 @@ export type QueueTask = {
 class QueueManager {
     #queue: Array<QueueTask> = []
 
-    constructor() {
-
-    }
+    constructor() { }
 
     enqueue(task: QueueTask) {
         console.log("Pushing the task in queue: ", task)
@@ -28,5 +26,9 @@ class QueueManager {
 }
 
 const queueManager = new QueueManager()
+const retryQueueManager = new QueueManager()
 
-export default queueManager
+export {
+    queueManager,
+    retryQueueManager,
+}

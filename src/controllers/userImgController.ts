@@ -3,8 +3,8 @@ import { Request, Response } from "express";
 import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 import dbInstance from "../services/database";
 import eventsManager from "../services/eventsManager";
-import queueManager from "../services/queueManager";
 import { sendAnalytics } from "../services/analytics";
+import { queueManager } from "../services/queueManager";
 import { TASK_EXECUTION_TYPES } from "../utils/common";
 
 export function userImgController(req: Request, res: Response) {
