@@ -27,8 +27,11 @@ class QueueManager {
 
 const queueManager = new QueueManager()
 const retryQueueManager = new QueueManager()
+const retryFallbackQueueManager = new QueueManager()
 
 export {
     queueManager,
     retryQueueManager,
+    retryFallbackQueueManager,
+    QueueManager,
 }
