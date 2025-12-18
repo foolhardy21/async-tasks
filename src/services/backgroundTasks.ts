@@ -14,6 +14,7 @@ class BackgroundTasks {
             console.log("Cron running")
             this.executeTaskQueue()
             this.executeRetryQueue()
+            this.executeRetryFallbackQueue()
         })
     }
 
@@ -42,6 +43,9 @@ class BackgroundTasks {
     }
     executeRetryQueue() {
         this.runTask(retryQueueManager, retryFallbackQueueManager)
+    }
+    executeRetryFallbackQueue() {
+        this.runTask(retryFallbackQueueManager, retryFallbackQueueManager)
     }
 }
 const backgroundTasks = new BackgroundTasks()
