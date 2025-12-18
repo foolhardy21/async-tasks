@@ -9,12 +9,17 @@ export type ImageUploadTask = {
 }
 
 class BackgroundTasks {
+    #initialDelay = 2
     start() {
         nodeCron.schedule("* * * * *", () => {
             console.log("Cron running")
             this.executeTaskQueue()
-            this.executeRetryQueue()
-            this.executeRetryFallbackQueue()
+            setTimeout(() => {
+                this.executeRetryQueue()
+            }, (this.#initialDelay * 1) * 1000)
+            setTimeout(() => {
+                this.executeRetryFallbackQueue()
+            }, (this.#initialDelay * 2) * 1000)
         })
     }
 
