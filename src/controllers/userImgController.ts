@@ -8,7 +8,8 @@ import { queueManager } from "../services/queueManager";
 import { TASK_EXECUTION_TYPES } from "../utils/common";
 
 export function userImgController(req: Request, res: Response) {
-    const { file, body: { userId, executionType = "" } } = req as any
+    const { file, body: { executionType = "" } } = req as any
+    const { userId } = req.params
     if (executionType === TASK_EXECUTION_TYPES.QUEUE) {
         queueManager.enqueue({ type: EVENTS.IMAGE_UPLOAD, data: { path: "users/uploaded/" + file.filename, userId: userId } })
     } else {
