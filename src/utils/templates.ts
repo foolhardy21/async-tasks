@@ -1,8 +1,7 @@
-import { QueueTask } from "../services/queueManager"
 
-export function failedImageResizeTasksMail(tasks: Array<QueueTask | undefined>) {
-    const rows = tasks
-        .map((task, index) => `
+export function failedImageResizeTasksMail(tasks: Array<any>) {
+  const rows = tasks
+    .map((task, index) => `
         <tr>
           <td style="padding: 8px; border-bottom: 1px solid #eee;">
             ${index + 1}
@@ -17,9 +16,9 @@ export function failedImageResizeTasksMail(tasks: Array<QueueTask | undefined>) 
             ${task?.data?.path ?? "—"}
           </td>
         </tr>`)
-        .join("")
+    .join("")
 
-    const body = `<div style="font-family: Arial, sans-serif; color: #333;">
+  const body = `<div style="font-family: Arial, sans-serif; color: #333;">
         <h2 style="margin-bottom: 8px;">Background Task Failures</h2>
         <p style="margin-top: 0;">
           The following background tasks failed and require attention:
@@ -51,8 +50,8 @@ export function failedImageResizeTasksMail(tasks: Array<QueueTask | undefined>) 
           </tbody>
         </table>
       </div>`
-    return {
-        subject: `Failed Background Tasks (${tasks.length})`,
-        body,
-    }
+  return {
+    subject: `Failed Background Tasks (${tasks.length})`,
+    body,
+  }
 }

@@ -1,7 +1,6 @@
-import dotenv from "dotenv"
 import { Resend } from "resend"
+import dotenv from "dotenv"
 import { failedImageResizeTasksMail } from "../utils/templates"
-import { QueueTask } from "./queueManager"
 
 dotenv.config()
 
@@ -34,7 +33,7 @@ class EmailSender {
         this.#emailService = emailService
     }
 
-    async sendFailedImageResizeTasksMail({ to, tasks }: { to: Array<string>, tasks: Array<QueueTask | undefined> }) {
+    async sendFailedImageResizeTasksMail({ to, tasks }: { to: Array<string>, tasks: Array<any> }) {
         try {
             const { subject, body } = failedImageResizeTasksMail(tasks)
             await this.#emailService.send({

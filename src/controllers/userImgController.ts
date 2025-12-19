@@ -4,14 +4,18 @@ import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 import dbInstance from "../services/database";
 import eventsManager from "../services/eventsManager";
 import { sendAnalytics } from "../services/analytics";
-import { queueManager } from "../services/queueManager";
+import backgroundTasks from "../services/backgroundTasks";
 import { TASK_EXECUTION_TYPES } from "../utils/common";
 
 export function userImgController(req: Request, res: Response) {
     const { file, body: { executionType = "" } } = req as any
     const { userId } = req.params
     if (executionType === TASK_EXECUTION_TYPES.QUEUE) {
-        queueManager.enqueue({ type: EVENTS.IMAGE_UPLOAD, data: { path: "users/uploaded/" + file.filename, userId: userId } })
+        backgroundTasks.addJob({
+            jobName: EVENTS.IMAGE_UPLOAD,
+            data: { path: "users/uploaded/" + file.filename, userId: userId },
+            options: {},
+        })
     } else {
         setTimeout(() => {
             eventsManager.fire(EVENTS.IMAGE_UPLOAD, { path: "users/uploaded/" + file.filename, userId: userId })

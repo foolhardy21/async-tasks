@@ -9,7 +9,6 @@ import eventsManager from "./src/services/eventsManager"
 import { GAME_DETAILS, LEADERBOARD_STANDINGS } from "./src/utils/leaderboardUtils"
 import { logger, requestTimer } from "./src/middlewares/common"
 import leaderboardRouter from "./src/routes/leaderboard"
-import backgroundTasks from "./src/services/backgroundTasks"
 
 dotenv.config()
 
@@ -26,7 +25,6 @@ app.use("/server-events", leaderboardRouter)
 server.listen(process.env.PORT, () => {
     console.log(`Server is running at ${process.env.PORT}`)
     eventsManager.subscribe(EVENTS.IMAGE_UPLOAD, userImgServiceInstance.handleImageUpload.bind(userImgServiceInstance))
-    backgroundTasks.start()
 })
 
 socketServer.on("connection", function (socket) {
