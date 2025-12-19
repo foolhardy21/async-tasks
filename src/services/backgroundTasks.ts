@@ -1,5 +1,5 @@
 import nodeCron from "node-cron"
-import { queueManager, QueueTask, retryFallbackQueueManager, retryQueueManager, QueueManager } from "./queueManager"
+import { queueManager, QueueTask, retryFallbackQueueManager, retryQueueManager, QueueManager, deadLetterQueueManager } from "./queueManager"
 import { EVENTS } from "../utils/eventsUtils"
 import userImgServiceInstance from "./userImage"
 
@@ -14,6 +14,7 @@ class BackgroundTasks {
         nodeCron.schedule("* * * * *", () => {
             console.log("Cron running")
             this.executeTaskQueue()
+            this.executeDeadLetterQueue()
             setTimeout(() => {
                 this.executeRetryQueue()
             }, (this.#initialDelay * 1) * 1000)
@@ -50,7 +51,10 @@ class BackgroundTasks {
         this.runTask(retryQueueManager, retryFallbackQueueManager)
     }
     executeRetryFallbackQueue() {
-        this.runTask(retryFallbackQueueManager, retryFallbackQueueManager)
+        this.runTask(retryFallbackQueueManager, deadLetterQueueManager)
+    }
+    executeDeadLetterQueue() {
+
     }
 }
 const backgroundTasks = new BackgroundTasks()
