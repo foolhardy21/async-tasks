@@ -2,6 +2,7 @@ import nodeCron from "node-cron"
 import { queueManager, QueueTask, retryFallbackQueueManager, retryQueueManager, QueueManager, deadLetterQueueManager } from "./queueManager"
 import { EVENTS } from "../utils/eventsUtils"
 import userImgServiceInstance from "./userImage"
+import emailSender from "./emails"
 
 export type ImageUploadTask = {
     path?: string
@@ -54,7 +55,17 @@ class BackgroundTasks {
         this.runTask(retryFallbackQueueManager, deadLetterQueueManager)
     }
     executeDeadLetterQueue() {
-
+        let failedTasks: Array<QueueTask | undefined> = []
+        while (deadLetterQueueManager.size()) {
+            const failedTask = deadLetterQueueManager.dequeue()
+            failedTasks.push(failedTask)
+        }
+        if (process.env.RESEND_TO_EMAIL && failedTasks.length) {
+            emailSender.sendFailedImageResizeTasksMail({
+                to: [process.env.RESEND_TO_EMAIL],
+                tasks: failedTasks,
+            })
+        }
     }
 }
 const backgroundTasks = new BackgroundTasks()
