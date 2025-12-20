@@ -4,12 +4,25 @@ import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 import dbInstance from "../services/database";
 import eventsManager from "../services/eventsManager";
 import { sendAnalytics } from "../services/analytics";
+import backgroundTasks from "../services/backgroundTasks";
+import { TASK_EXECUTION_TYPES } from "../utils/common";
 
 export function userImgController(req: Request, res: Response) {
-    const { file, body: { userId } } = req as any
-    setTimeout(() => {
-        eventsManager.fire(EVENTS.IMAGE_UPLOAD, { path: "users/uploaded/" + file.filename, userId: userId })
-    }, 0 * 1000)
+    const { file, body: { executionType = "", processOn = new Date() } } = req as any
+    const { userId } = req.params
+    if (executionType === TASK_EXECUTION_TYPES.QUEUE) {
+        backgroundTasks.addJob({
+            jobName: EVENTS.IMAGE_UPLOAD,
+            data: { path: "users/uploaded/" + file.filename, userId: userId },
+            options: {
+                delay: Number(new Date(processOn)) - Number(new Date())
+            },
+        })
+    } else {
+        setTimeout(() => {
+            eventsManager.fire(EVENTS.IMAGE_UPLOAD, { path: "users/uploaded/" + file.filename, userId: userId })
+        }, 0 * 1000)
+    }
     return res.status(202).json({ success: true, message: "Task accepted successfully." })
 }
 

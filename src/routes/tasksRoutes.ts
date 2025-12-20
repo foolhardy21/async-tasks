@@ -9,9 +9,8 @@ const storage = multer.diskStorage({
     destination: function (_, __, cb) {
         cb(null, "src/assets/users/uploaded/")
     },
-    filename: function (_, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, file.fieldname + "-" + uniqueSuffix + ".jpg")
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + "-" + req.params.userId + ".jpg")
     },
 })
 const fileFilter = function (_: Request, file: Express.Multer.File, cb: FileFilterCallback) {
@@ -21,7 +20,7 @@ const fileFilter = function (_: Request, file: Express.Multer.File, cb: FileFilt
 }
 const fileUpload = multer({ storage, fileFilter })
 
-tasksrouter.post("/upload-image", fileUpload.single("file"), userImgValidator, userImgController)
+tasksrouter.post("/upload-image/:userId", fileUpload.single("file"), userImgValidator, userImgController)
 tasksrouter.get("/thumbnail-status/:userId", thumbnailStatusValidator, thumbnailStatusController)
 
 export default tasksrouter

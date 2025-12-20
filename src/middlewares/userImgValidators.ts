@@ -4,7 +4,8 @@ import dbInstance from "../services/database"
 import { deleteFile } from "../utils/common"
 
 export async function userImgValidator(req: Request, res: Response, next: NextFunction) {
-    const { file, body: { userId } } = (req as any)
+    const { file } = (req as any)
+    const { userId } = req.params
     if (!file) return res.status(400).json({ success: false, message: "File is invalid." })
     try {
         const userDbRes = await dbInstance.get({

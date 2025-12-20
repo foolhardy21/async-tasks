@@ -34,7 +34,7 @@ export function requestTimer(req: Request, res: Response, next: NextFunction) {
                 original_url: originalUrl,
                 elapsed_time: elapsedTime,
             })
-            return originalSendFn.apply(res, ...args)
+            return originalSendFn.apply(res, args)
         }
         next()
     } catch (err) {

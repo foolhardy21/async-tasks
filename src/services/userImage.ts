@@ -46,6 +46,7 @@ class UserImage {
             }
         } catch (err) {
             console.log("Error while uploading user image:", err)
+            throw err
         }
     }
 
@@ -61,10 +62,15 @@ class UserImage {
                         where: { id: { [Op.is]: thumbnail.userId } }
                     }
                 )
-                eventsManager.fire(EVENT_TASKS_MAP[EVENTS.IMAGE_UPLOAD][0], thumbnail.path)
+                try {
+                    eventsManager.fire(EVENT_TASKS_MAP[EVENTS.IMAGE_UPLOAD][0], thumbnail.path)
+                } catch (err) {
+                    console.log(err)
+                }
             }
         } catch (err) {
             console.log("Error while updating user's thumbnail:", err)
+            throw err
         }
     }
 
