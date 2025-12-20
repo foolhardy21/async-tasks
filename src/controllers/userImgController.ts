@@ -8,13 +8,15 @@ import backgroundTasks from "../services/backgroundTasks";
 import { TASK_EXECUTION_TYPES } from "../utils/common";
 
 export function userImgController(req: Request, res: Response) {
-    const { file, body: { executionType = "" } } = req as any
+    const { file, body: { executionType = "", processOn = new Date() } } = req as any
     const { userId } = req.params
     if (executionType === TASK_EXECUTION_TYPES.QUEUE) {
         backgroundTasks.addJob({
             jobName: EVENTS.IMAGE_UPLOAD,
             data: { path: "users/uploaded/" + file.filename, userId: userId },
-            options: {},
+            options: {
+                delay: Number(new Date(processOn)) - Number(new Date())
+            },
         })
     } else {
         setTimeout(() => {
