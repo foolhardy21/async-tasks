@@ -1,3 +1,28 @@
+# Version 1.1.0
+
+Changelog
+**Released** Dec 24, 2025
+
+## New Features
+
+ - **Multi-stage Queue Workflow**
+Standard task queue → retry queue → dead-letter queue (DLQ)
+
+ - **Retry Mechanism**
+Automatic exponential backoff (e.g., 1s → 2s → 4s)
+
+ - **Dead-Letter Queue (DLQ)**
+Failed jobs after retries routed to DLQ
+
+ - **Email Alerts**
+Integration with Resend for notifications on DLQ failures 
+
+ - **Optional Job Delays**
+Support scheduling tasks to run in the future (processOn timestamps)
+
+ - **Idempotency Fix**
+Filename generation tied to userId to prevent duplicate uploads
+
 # Version 1.0.0
 
 Changelog
