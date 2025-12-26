@@ -9,6 +9,6 @@ export async function deleteFile(filePath: string) {
 }
 
 export const TASK_EXECUTION_TYPES = {
-    QUEUE: "queue-cron",
+    QUEUE: "queue",
     PUBSUB: "pub-sub",
 }

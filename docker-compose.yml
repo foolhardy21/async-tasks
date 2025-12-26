@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+     - "6379:6379"
