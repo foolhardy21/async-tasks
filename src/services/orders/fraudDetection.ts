@@ -26,7 +26,7 @@ class OrderFraudDetection {
                 }
             })
         } catch (err) {
-            console.log("Error subscribing order inventory consumer: ", err)
+            console.log("Error subscribing order fraud detection consumer: ", err)
         }
     }
 }

@@ -1,9 +1,9 @@
 import kafka from "../utils/kafka"
 
-class OrderInventory {
+class OrderPayment {
     #consumer
     constructor() {
-        this.#consumer = kafka.client.consumer({ groupId: "order-inventory" })
+        this.#consumer = kafka.client.consumer({ groupId: "order-payment" })
     }
 
     async init() {
@@ -17,15 +17,15 @@ class OrderInventory {
 
                     switch (event_version) {
                         case 2:
-                            console.log(topic, event_version, "Inventory reserved for: ", order_id, msgObj)
+                            console.log(topic, event_version, "Payment processed for: ", order_id, msgObj)
 
-                            await kafka.produce("inventory.reserved", [{
+                            await kafka.produce("payment.authorized", [{
                                 value: JSON.stringify({
-                                    event_type: "InventoryReserved",
-                                    event_version: 2,
+                                    event_type: "PaymentAuthorized",
+                                    event_version: 1,
                                     order_id,
                                     user_id,
-                                }),
+                                })
                             }])
                             break
                         default: return
@@ -33,11 +33,11 @@ class OrderInventory {
                 }
             })
         } catch (err) {
-            console.log("Error subscribing order inventory consumer: ", err)
+            console.log("Error subscribing order payment consumer: ", err)
         }
     }
 }
 
-const orderInventory = new OrderInventory()
+const orderPayment = new OrderPayment()
 
-export default orderInventory
+export default orderPayment

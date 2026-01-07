@@ -9,15 +9,15 @@ class OrderNotification {
     async init() {
         try {
             await this.#consumer.connect()
-            await this.#consumer.subscribe({ topic: "order.created", fromBeginning: true })
+            await this.#consumer.subscribe({ topic: "order.ready", fromBeginning: true })
             await this.#consumer.run({
                 eachMessage: async ({ topic, message }) => {
                     const msgObj = JSON.parse(message.value?.toString() || "")
+                    const { event_version, order_id } = msgObj
 
-                    const { event_version } = msgObj
                     switch (event_version) {
-                        case 1:
-                            console.log("Mesage consumed in notification: ", topic, event_version, msgObj)
+                        case 2:
+                            console.log(topic, event_version, "Notification sent for: ", order_id, msgObj)
                             break
                         default: return
                     }

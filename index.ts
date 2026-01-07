@@ -12,6 +12,8 @@ import leaderboardRouter from "./src/routes/leaderboard"
 import orderFraudDetection from "./src/services/orders/fraudDetection"
 import orderInventory from "./src/services/orders/inventory"
 import orderNotification from "./src/services/orders/notification"
+import orderPayment from "./src/services/orders/payment"
+import orderAggregator from "./src/services/orders/aggregator"
 
 dotenv.config()
 
@@ -25,13 +27,15 @@ app.use(requestTimer)
 app.use("/api/tasks", tasksRouter)
 app.use("/server-events", leaderboardRouter)
 
-server.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, async () => {
     console.log(`Server is running at ${process.env.PORT}`)
     eventsManager.subscribe(EVENTS.IMAGE_UPLOAD, userImgServiceInstance.handleImageUpload.bind(userImgServiceInstance))
 
-    orderFraudDetection.init()
-    orderInventory.init()
-    orderNotification.init()
+    await orderFraudDetection.init()
+    await orderInventory.init()
+    await orderPayment.init()
+    await orderNotification.init()
+    await orderAggregator.init()
 })
 
 socketServer.on("connection", function (socket) {

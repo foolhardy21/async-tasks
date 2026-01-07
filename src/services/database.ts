@@ -1,9 +1,11 @@
 import path from "path"
 import { DataTypes, FindOptions, Sequelize, UpdateOptions, WhereOptions } from "sequelize"
+import { INVENTORY_STATUS, PAYMENT_STATUS } from "../utils/common"
 
 class Database {
     #sequelize
     #User
+    #OrderServices
 
     constructor() {
         this.#sequelize = new Sequelize({
@@ -29,6 +31,28 @@ class Database {
             },
             {
                 tableName: "users",
+                underscored: true,
+                timestamps: true,
+            },
+        )
+        this.#OrderServices = this.#sequelize.define(
+            "OrderServices",
+            {
+                orderId: {
+                    type: DataTypes.UUIDV4,
+                    primaryKey: true,
+                },
+                paymentStatus: {
+                    type: DataTypes.ENUM(...Object.values(PAYMENT_STATUS)),
+                    allowNull: true,
+                },
+                inventoryStatus: {
+                    type: DataTypes.ENUM(...Object.values(INVENTORY_STATUS)),
+                    allowNull: true,
+                },
+            },
+            {
+                tableName: "order_services",
                 underscored: true,
                 timestamps: true,
             },
@@ -76,6 +100,39 @@ class Database {
         }
     }
 
+    async getOrderService({ where, options }: { where: WhereOptions, options: FindOptions }) {
+        try {
+            const orderModels = await this.#OrderServices.findAll({
+                ...(where && { where }),
+                ...(options && options),
+            })
+            return orderModels.map(orderModel => orderModel.toJSON())
+        } catch (err) {
+            console.log(err)
+            throw err as Error
+        }
+    }
+
+    async createOrderService({ orderId, paymentStatus, inventoryStatus }: { orderId: string, paymentStatus: string, inventoryStatus: string }) {
+        try {
+            const orderModel = await this.#OrderServices.create({
+                ...(orderId && { orderId }),
+                ...(paymentStatus && { paymentStatus }),
+                ...(inventoryStatus && { inventoryStatus }),
+            })
+            return orderModel.toJSON()
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    async updateOrderService(columns: Record<string, unknown>, options: { where: WhereOptions } & Partial<UpdateOptions>) {
+        try {
+            await this.#OrderServices.update(columns, options)
+        } catch (err) {
+            console.log(err)
+        }
+    }
 }
 
 const dbInstance = new Database()
