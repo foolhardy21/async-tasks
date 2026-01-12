@@ -1,3 +1,4 @@
+import { Op } from "sequelize"
 import dbInstance from "../database"
 import kafka from "../utils/kafka"
 import { INVENTORY_STATUS, PAYMENT_STATUS } from "../../utils/common"
@@ -33,7 +34,7 @@ class AggregatorConsumer {
         }
     }
 
-    async updateAggregate(type: string, { order_id, user_id }: { order_id: string, user_id: string }) {
+    async updateAggregate(type: string, { order_id, user_id, event_version }: { order_id: string, user_id: string, event_version: number }) {
         let orderArr = await dbInstance.getOrderService({
             where: {
                 orderId: order_id,
@@ -41,13 +42,7 @@ class AggregatorConsumer {
             options: {}
         })
         let [order] = orderArr
-        if (!orderArr.length) {
-            order = await dbInstance.createOrderService({
-                orderId: order_id,
-                paymentStatus: PAYMENT_STATUS.PENDING,
-                inventoryStatus: INVENTORY_STATUS.PENDING,
-            })
-        }
+        if (!order) return
 
         switch (type) {
             case "inventory":
@@ -75,11 +70,58 @@ class AggregatorConsumer {
             await kafka.produce("order.ready", [{
                 value: JSON.stringify({
                     event_type: "OrderReady",
-                    event_version: 2,
+                    event_version,
                     order_id,
                     user_id,
                 })
             }])
+        }
+    }
+
+    async cancelPendingOrders() {
+        try {
+            const orders = await dbInstance.getOrderService({
+                where: {
+                    [Op.and]: [
+                        {
+                            paymentStatus: {
+                                [Op.eq]: PAYMENT_STATUS.PENDING,
+                            },
+                        },
+                        {
+                            inventoryStatus: {
+                                [Op.eq]: INVENTORY_STATUS.PENDING,
+                            }
+                        }
+                    ]
+                },
+                options: {},
+            })
+            for (const order of orders) {
+                const { expiresAt } = order
+                if (!expiresAt) continue
+                let now = new Date()
+                if (now > expiresAt) {
+                    await dbInstance.updateOrderService(
+                        {
+                            paymentStatus: PAYMENT_STATUS.FAILED,
+                            inventoryStatus: INVENTORY_STATUS.FAILED,
+                        },
+                        {
+                            where: { orderId: { [Op.eq]: order.orderId } }
+                        }
+                    )
+                    await kafka.produce("order.cancelled", [{
+                        value: JSON.stringify({
+                            event_version: 1,
+                            eventType: "OrderCancelled",
+                            order_id: order.orderId,
+                        })
+                    }])
+                }
+            }
+        } catch (err) {
+            console.log("Error updating the failed orders: ", err)
         }
     }
 }
@@ -87,3 +129,8 @@ class AggregatorConsumer {
 const orderAggregator = new AggregatorConsumer()
 
 export default orderAggregator
+
+/**
+ * save the order with pending states.
+ * have a background cron the keeps checking this table and updates the state to a cancelled order and emits order.cancelled.
+ */

@@ -22,7 +22,7 @@ class OrderPayment {
                             await kafka.produce("payment.authorized", [{
                                 value: JSON.stringify({
                                     event_type: "PaymentAuthorized",
-                                    event_version: 1,
+                                    event_version,
                                     order_id,
                                     user_id,
                                 })

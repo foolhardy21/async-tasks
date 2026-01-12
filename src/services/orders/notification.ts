@@ -9,7 +9,7 @@ class OrderNotification {
     async init() {
         try {
             await this.#consumer.connect()
-            await this.#consumer.subscribe({ topic: "order.ready", fromBeginning: true })
+            await this.#consumer.subscribe({ topics: ["order.ready", "order.cancelled"], fromBeginning: true })
             await this.#consumer.run({
                 eachMessage: async ({ topic, message }) => {
                     const msgObj = JSON.parse(message.value?.toString() || "")

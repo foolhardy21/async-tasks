@@ -22,7 +22,7 @@ class OrderInventory {
                             await kafka.produce("inventory.reserved", [{
                                 value: JSON.stringify({
                                     event_type: "InventoryReserved",
-                                    event_version: 2,
+                                    event_version,
                                     order_id,
                                     user_id,
                                 }),

@@ -2,6 +2,7 @@ import dotenv from "dotenv"
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
+import nodeCron from "node-cron"
 import tasksRouter from "./src/routes/tasksRoutes"
 import { EVENTS } from "./src/utils/eventsUtils"
 import userImgServiceInstance from "./src/services/thumbnail/userImage"
@@ -36,6 +37,10 @@ server.listen(process.env.PORT, async () => {
     await orderPayment.init()
     await orderNotification.init()
     await orderAggregator.init()
+
+    nodeCron.schedule("* * * * *", async () => {
+        await orderAggregator.cancelPendingOrders()
+    })
 })
 
 socketServer.on("connection", function (socket) {

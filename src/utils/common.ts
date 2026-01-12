@@ -23,4 +23,7 @@ export const INVENTORY_STATUS = {
     PENDING: "pending",
     RESERVED: "reserved",
     OUT_OF_STOCK: "out_of_stock",
+    FAILED: "failed",
 }
+
+export const ORDER_EXPIRE_LIMIT = 1

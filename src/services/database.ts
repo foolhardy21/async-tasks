@@ -50,6 +50,10 @@ class Database {
                     type: DataTypes.ENUM(...Object.values(INVENTORY_STATUS)),
                     allowNull: true,
                 },
+                expiresAt: {
+                    type: DataTypes.DATE,
+                    allowNull: true,
+                }
             },
             {
                 tableName: "order_services",
@@ -113,12 +117,13 @@ class Database {
         }
     }
 
-    async createOrderService({ orderId, paymentStatus, inventoryStatus }: { orderId: string, paymentStatus: string, inventoryStatus: string }) {
+    async createOrderService({ orderId, paymentStatus, inventoryStatus, expiresAt }: { orderId: string, paymentStatus: string, inventoryStatus: string, expiresAt: Date }) {
         try {
             const orderModel = await this.#OrderServices.create({
                 ...(orderId && { orderId }),
                 ...(paymentStatus && { paymentStatus }),
                 ...(inventoryStatus && { inventoryStatus }),
+                ...(expiresAt && { expiresAt }),
             })
             return orderModel.toJSON()
         } catch (err) {
