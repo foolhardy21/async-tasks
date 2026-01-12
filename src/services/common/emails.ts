@@ -1,6 +1,6 @@
 import { Resend } from "resend"
 import dotenv from "dotenv"
-import { failedImageResizeTasksMail } from "../utils/templates"
+import { failedImageResizeTasksMail } from "../../utils/templates"
 
 dotenv.config()
 

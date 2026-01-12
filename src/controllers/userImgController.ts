@@ -2,9 +2,9 @@ import { Op } from "sequelize";
 import { Request, Response } from "express";
 import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
 import dbInstance from "../services/database";
-import eventsManager from "../services/eventsManager";
-import { sendAnalytics } from "../services/analytics";
-import backgroundTasks from "../services/backgroundTasks";
+import eventsManager from "../services/utils/eventsManager";
+import { sendAnalytics } from "../services/common/analytics";
+import backgroundTasks from "../services/utils/backgroundTasks";
 import { TASK_EXECUTION_TYPES } from "../utils/common";
 
 export function userImgController(req: Request, res: Response) {

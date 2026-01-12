@@ -1,8 +1,8 @@
 import { Op } from "sequelize"
 import { Worker } from "worker_threads";
-import dbInstance from "./database"
-import { EVENT_TASKS_MAP, EVENTS } from "../utils/eventsUtils";
-import eventsManager from "./eventsManager";
+import dbInstance from "../database"
+import { EVENT_TASKS_MAP, EVENTS } from "../../utils/eventsUtils";
+import eventsManager from "../utils/eventsManager";
 
 class UserImage {
     #usersThumbnailData: Array<{ userId: number, path: string }>

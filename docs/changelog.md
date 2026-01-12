@@ -1,3 +1,55 @@
+# Version 1.2.0
+
+Changelog
+**Released** Jan 12, 2026
+
+This version introduces a complete **event-driven order processing pipeline** with **event versioning**, **service-level consumers**, and a **central order aggregator**.  
+It lays the foundation for reliable, decoupled order handling across payment, inventory, fraud detection, notifications, and cancellations.
+
+## New Features
+
+**1. Event Versioning**
+- Added `event_version` to order-related Kafka events
+- Consumers handle logic based on event version, enabling backward-compatible evolution
+
+**2. Order Lifecycle via Kafka**
+Introduced the following Kafka topics and flows:
+- `order.created`
+- `inventory.reserved`
+- `payment.authorized`
+- `order.ready`
+- `order.cancelled`
+
+Each service consumes and produces events independently.
+
+## Database Changes
+
+**New Table: `order_services`**
+Tracks distributed order state:
+- `order_id`
+- `payment_status`
+- `inventory_status`
+- `expires_at`
+- timestamps
+
+## 🌐 API Additions
+
+**Create Order**
+- **Endpoint**: `POST /api/tasks/order/:userId`
+- **Content-Type**: `application/json`
+- **Fields**:
+  - `userId` (string/number) — id of the user placing the order
+- **Payload**:
+  - `totalAmount`
+  - `items`
+  - `paymentMethodBin`
+  - `deviceFingerprint`
+- **Success response** (example):
+  - `202 OK`
+- **Error responses**:
+  - `400 Bad Request` when validation fails
+  - `500 Internal Server Error` for unexpected failures
+
 # Version 1.1.0
 
 Changelog

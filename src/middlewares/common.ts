@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express"
-import { sendAnalytics } from "../services/analytics"
+import { sendAnalytics } from "../services/common/analytics"
 
 export function logger(req: Request, _: Response, next: NextFunction) {
     try {

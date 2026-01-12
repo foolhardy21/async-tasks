@@ -1,9 +1,9 @@
 import dotenv from "dotenv"
 import IORedis from "ioredis"
 import { Job, JobsOptions, Queue, Worker } from "bullmq"
-import { EVENTS } from "../utils/eventsUtils"
-import userImgServiceInstance from "./userImage"
-import emailSender from "./emails"
+import { EVENTS } from "../../utils/eventsUtils"
+import userImgServiceInstance from "../thumbnail/userImage"
+import emailSender from "../common/emails"
 
 dotenv.config()
 

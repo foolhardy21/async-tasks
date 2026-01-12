@@ -2,6 +2,8 @@ import multer, { FileFilterCallback } from "multer"
 import { Request, Router } from "express"
 import { thumbnailStatusValidator, userImgValidator } from "../middlewares/userImgValidators"
 import { thumbnailStatusController, userImgController } from "../controllers/userImgController"
+import { createOrderController } from "../controllers/orderController"
+import { createOrderValidator } from "../middlewares/orderValidators"
 
 const tasksrouter = Router()
 
@@ -22,5 +24,6 @@ const fileUpload = multer({ storage, fileFilter })
 
 tasksrouter.post("/upload-image/:userId", fileUpload.single("file"), userImgValidator, userImgController)
 tasksrouter.get("/thumbnail-status/:userId", thumbnailStatusValidator, thumbnailStatusController)
+tasksrouter.post("/order/:userId", createOrderValidator, createOrderController)
 
 export default tasksrouter
